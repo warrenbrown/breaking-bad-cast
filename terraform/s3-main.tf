@@ -10,7 +10,7 @@ locals {
 }
 
 variable "domain_name" {
-  default = "my-cinemadriveins.com"
+  default = "breakingbadcast.com"
 }
 
 variable "stage" {
