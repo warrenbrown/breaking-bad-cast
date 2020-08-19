@@ -1,0 +1,71 @@
+name: App Static
+
+on:
+  push:
+    branches:
+      - develop
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [13.x]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node_modules
+        uses: actions/cache@v1
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Init - Dev
+        if: github.ref != 'refs/heads/master'
+        id: setting_dev_env
+        env:
+          BUCKET_NAME: dev.cinemadriveins.com
+          STAGE: dev
+        run: |
+          echo Setting up dev enironment.
+          echo "::set-env name=BUCKET_NAME::$BUCKET_NAME"
+          echo "::set-env name=STAGE::$STAGE"
+
+      - name: Init - Prod
+        if: github.ref == 'refs/heads/master'
+        id: setting_prod_env
+        env:
+          BUCKET_NAME: cinemadriveins.com
+          STAGE: prod
+        run: |
+          echo Setting up prod environment.
+          echo "::set-env name=BUCKET_NAME::$BUCKET_NAME"
+          echo "::set-env name=STAGE::$STAGE"
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      - name: Install dependencies
+        run: cd applications && yarn && yarn build
+
+      - name: Deploy static site to S3 bucket
+        run: |
+          echo Deploying to bucket ${{env.BUCKETNAME}}
+          aws s3 sync ./applications/dist/apps/portal s3://${{env.BUCKETNAME}} --delete
