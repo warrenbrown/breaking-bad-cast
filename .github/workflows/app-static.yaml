@@ -32,7 +32,7 @@ jobs:
         if: github.ref != 'refs/heads/master'
         id: setting_dev_env
         env:
-          BUCKET_NAME: dev.cinemadriveins.com
+          BUCKET_NAME: dev.my-cinemadriveins.com
           STAGE: dev
         run: |
           echo Setting up dev enironment.
@@ -43,7 +43,7 @@ jobs:
         if: github.ref == 'refs/heads/master'
         id: setting_prod_env
         env:
-          BUCKET_NAME: cinemadriveins.com
+          BUCKET_NAME: my-cinemadriveins.com
           STAGE: prod
         run: |
           echo Setting up prod environment.
@@ -63,9 +63,9 @@ jobs:
           aws-region: us-west-2
 
       - name: Install dependencies
-        run: cd applications && yarn && yarn build
+        run: yarn && yarn build
 
       - name: Deploy static site to S3 bucket
         run: |
           echo Deploying to bucket ${{env.BUCKETNAME}}
-          aws s3 sync ./applications/dist/apps/portal s3://${{env.BUCKETNAME}} --delete
+          aws s3 sync ./build s3://${{env.BUCKETNAME}} --delete
