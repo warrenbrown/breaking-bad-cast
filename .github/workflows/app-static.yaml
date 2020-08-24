@@ -75,3 +75,4 @@ jobs:
         env:
           AWS_REGION: us-west-2
           SOURCE_PATH: '*'
+          DISTRIBUTION_ID: E2JEZL1FQBK39Z
