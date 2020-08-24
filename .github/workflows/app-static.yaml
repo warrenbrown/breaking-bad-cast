@@ -71,7 +71,7 @@ jobs:
           aws s3 sync ./build s3://${{env.BUCKETNAME}} --delete
 
       - name: Invalidate CloudFront
-      - uses: awact/cloudfront-action@master
+        uses: awact/cloudfront-action@master
         env:
           AWS_REGION: us-west-2
           SOURCE_PATH: '*'
